@@ -14,13 +14,13 @@ std::uint32_t MOVE(std::uint32_t f, std::uint32_t t, std::uint32_t ca,
 
 bool SQOFFBOARD(int sq) { return FilesBrd.at(sq) == OFFBOARD; }
 
-std::array<int, 8> LoopSlidePce = {wB, wR, wQ, 0, bB, bR, bQ, 0};
-std::array<int, 6> LoopNonSlidePce = {wN, wK, 0, bN, bK, 0};
+const std::array<int, 8> LoopSlidePce = {wB, wR, wQ, 0, bB, bR, bQ, 0};
+const std::array<int, 6> LoopNonSlidePce = {wN, wK, 0, bN, bK, 0};
 
-std::array<int, 2> LoopSlideIndex = {0, 4};
-std::array<int, 2> LoopNonSlideIndex = {0, 3};
+const std::array<int, 2> LoopSlideIndex = {0, 4};
+const std::array<int, 2> LoopNonSlideIndex = {0, 3};
 
-std::array<std::array<int, 9>, 13> PceDir = {
+const std::array<std::array<int, 9>, 13> PceDir = {
     {{0, 0, 0, 0, 0, 0, 0},
      {0, 0, 0, 0, 0, 0, 0},
      {-8, -19, -21, -12, 8, 19, 21, 12},
@@ -35,8 +35,9 @@ std::array<std::array<int, 9>, 13> PceDir = {
      {-1, -10, 1, 10, -9, -11, 11, 9},
      {-1, -10, 1, 10, -9, -11, 11, 9}}};
 
-std::array<int, 13> NumDir = {0, 0, 8, 4, 4, 8, 8, 0, 8, 4, 4, 8, 8};
+const std::array<int, 13> NumDir = {0, 0, 8, 4, 4, 8, 8, 0, 8, 4, 4, 8, 8};
 
+namespace {
 void AddQuietMove(const S_BOARD& pos, std::uint32_t move, S_MOVELIST* list) {
   assert(SqOnBoard(FROMSQ(move)));
   assert(SqOnBoard(TOSQ(move)));
@@ -115,10 +116,12 @@ void AddBlackPawnMove(const S_BOARD& pos, const int from, const int to,
     AddQuietMove(pos, MOVE(from, to, EMPTY, EMPTY, 0), list);
   }
 }
+}  // namespace
 
 void GenerateAllMoves(const S_BOARD& pos, S_MOVELIST* list) {
   list->moves.clear();
 
+  std::cout << "pos.side" << pos.side << std::endl;
   int side = pos.side;
 
   std::cout << "\n\nSide: " << side << '\n';
@@ -154,6 +157,22 @@ void GenerateAllMoves(const S_BOARD& pos, S_MOVELIST* list) {
         }
       }
     }
+    if (pos.castlePerm & WKCA) {
+      if (pos.pieces[F1] == EMPTY && pos.pieces[G1] == EMPTY) {
+        if (!SqAttacked(E1, BLACK, pos) && !SqAttacked(F1, BLACK, pos)) {
+          AddQuietMove(pos, MOVE(E1, G1, EMPTY, EMPTY, MFLAGCA), list);
+        }
+      }
+    }
+
+    if (pos.castlePerm & WQCA) {
+      if (pos.pieces[D1] == EMPTY && pos.pieces[C1] == EMPTY &&
+          pos.pieces[B1] == EMPTY) {
+        if (!SqAttacked(E1, BLACK, pos) && !SqAttacked(D1, BLACK, pos)) {
+          AddQuietMove(pos, MOVE(E1, C1, EMPTY, EMPTY, MFLAGCA), list);
+        }
+      }
+    }
   } else {
     for (int pceNum = 0; pceNum < pos.pceNum[bP]; ++pceNum) {
       int sq = pos.pList[bP][pceNum];
@@ -183,15 +202,59 @@ void GenerateAllMoves(const S_BOARD& pos, S_MOVELIST* list) {
         }
       }
     }
+
+    // castling
+    if (pos.castlePerm & BKCA) {
+      if (pos.pieces[F8] == EMPTY && pos.pieces[G8] == EMPTY) {
+        if (!SqAttacked(E8, WHITE, pos) && !SqAttacked(F8, WHITE, pos)) {
+          AddQuietMove(pos, MOVE(E8, G8, EMPTY, EMPTY, MFLAGCA), list);
+        }
+      }
+    }
+
+    if (pos.castlePerm & BQCA) {
+      if (pos.pieces[D8] == EMPTY && pos.pieces[C8] == EMPTY &&
+          pos.pieces[B8] == EMPTY) {
+        if (!SqAttacked(E8, WHITE, pos) && !SqAttacked(D8, WHITE, pos)) {
+          AddQuietMove(pos, MOVE(E8, C8, EMPTY, EMPTY, MFLAGCA), list);
+        }
+      }
+    }
   }
 
   // Loop for slide pieces.
+  std::cout << "side = " << side << std::endl;
+  std::cout << "size = " << LoopSlideIndex.size() << std::endl;
   int pceIndex = LoopSlideIndex[side];
   int pce = LoopSlidePce[pceIndex];
   ++pceIndex;
   while (pce != 0) {
     assert(PieceValid(pce));
     std::cout << "sliders pceIndex: " << pceIndex << " pce: " << pce << '\n';
+
+    for (int pceNum = 0; pceNum < pos.pceNum[pce]; ++pceNum) {
+      int sq = pos.pList[pce][pceNum];
+      assert(SqOnBoard(sq));
+      std::cout << "Piece:" << PceChar[pce] << " on " << PrSq(sq) << std::endl;
+
+      for (int index = 0; index < NumDir[pce]; ++index) {
+        int dir = PceDir[pce][index];
+        int t_sq = sq + dir;
+
+        while (!SQOFFBOARD(t_sq)) {
+          // BLACK ^ 1 == WHITE       WHITE ^ 1 == BLACK
+          if (pos.pieces[t_sq] != EMPTY) {
+            if (PieceCol[pos.pieces[t_sq]] == (side ^ 1)) {
+              AddCaptureMove(pos, MOVE(sq, t_sq, pos.pieces[t_sq], EMPTY, 0),
+                             list);
+            }
+            break;
+          }
+          AddQuietMove(pos, MOVE(sq, t_sq, EMPTY, EMPTY, 0), list);
+          t_sq += dir;
+        }
+      }
+    }
 
     pce = LoopSlidePce[pceIndex];
     ++pceIndex;
@@ -222,12 +285,13 @@ void GenerateAllMoves(const S_BOARD& pos, S_MOVELIST* list) {
 
         if (pos.pieces[t_sq] != EMPTY) {
           if (PieceCol[pos.pieces[t_sq]] == (side ^ 1)) {
-            std::cout << "\t\tCapture on " << PrSq(t_sq) << '\n';
+            AddCaptureMove(pos, MOVE(sq, t_sq, pos.pieces[t_sq], EMPTY, 0),
+                           list);
           }
           continue;
         }
 
-        std::cout << "\t\tNormal on " << PrSq(t_sq) << '\n';
+        AddQuietMove(pos, MOVE(sq, t_sq, EMPTY, EMPTY, 0), list);
       }
     }
     pce = LoopNonSlidePce[pceIndex];
