@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <iostream>
 
 #include "defs.h"
@@ -38,21 +39,23 @@ const std::array<std::array<int, 9>, 13> PceDir = {
 const std::array<int, 13> NumDir = {0, 0, 8, 4, 4, 8, 8, 0, 8, 4, 4, 8, 8};
 
 namespace {
-void AddQuietMove(const S_BOARD& pos, std::uint32_t move, S_MOVELIST* list) {
+void AddQuietMove(__attribute__((unused)) const S_BOARD& pos,
+                  std::uint32_t move, S_MOVELIST* list) {
   assert(SqOnBoard(FROMSQ(move)));
   assert(SqOnBoard(TOSQ(move)));
   list->moves.push_back({/*move=*/move, /*score=*/0});
 }
 
-void AddCaptureMove(const S_BOARD& pos, std::uint32_t move, S_MOVELIST* list) {
+void AddCaptureMove(__attribute__((unused)) const S_BOARD& pos,
+                    std::uint32_t move, S_MOVELIST* list) {
   assert(SqOnBoard(FROMSQ(move)));
   assert(SqOnBoard(TOSQ(move)));
   assert(PieceValid(CAPTURED(move)));
   list->moves.push_back({/*move=*/move, /*score=*/0});
 }
 
-void AddEnPassantMove(const S_BOARD& pos, std::uint32_t move,
-                      S_MOVELIST* list) {
+void AddEnPassantMove(__attribute__((unused)) const S_BOARD& pos,
+                      std::uint32_t move, S_MOVELIST* list) {
   assert(SqOnBoard(FROMSQ(move)));
   assert(SqOnBoard(TOSQ(move)));
   list->moves.push_back({/*move=*/move, /*score=*/0});
@@ -121,10 +124,7 @@ void AddBlackPawnMove(const S_BOARD& pos, const int from, const int to,
 void GenerateAllMoves(const S_BOARD& pos, S_MOVELIST* list) {
   list->moves.clear();
 
-  std::cout << "pos.side" << pos.side << std::endl;
   int side = pos.side;
-
-  std::cout << "\n\nSide: " << side << '\n';
 
   if (side == WHITE) {
     for (int pceNum = 0; pceNum < pos.pceNum.at(wP); ++pceNum) {
@@ -223,19 +223,15 @@ void GenerateAllMoves(const S_BOARD& pos, S_MOVELIST* list) {
   }
 
   // Loop for slide pieces.
-  std::cout << "side = " << side << std::endl;
-  std::cout << "size = " << LoopSlideIndex.size() << std::endl;
   int pceIndex = LoopSlideIndex[side];
   int pce = LoopSlidePce[pceIndex];
   ++pceIndex;
   while (pce != 0) {
     assert(PieceValid(pce));
-    std::cout << "sliders pceIndex: " << pceIndex << " pce: " << pce << '\n';
 
     for (int pceNum = 0; pceNum < pos.pceNum[pce]; ++pceNum) {
       int sq = pos.pList[pce][pceNum];
       assert(SqOnBoard(sq));
-      std::cout << "Piece:" << PceChar[pce] << " on " << PrSq(sq) << std::endl;
 
       for (int index = 0; index < NumDir[pce]; ++index) {
         int dir = PceDir[pce][index];
@@ -267,13 +263,10 @@ void GenerateAllMoves(const S_BOARD& pos, S_MOVELIST* list) {
 
   while (pce != 0) {
     assert(PieceValid(pce));
-    std::cout << "non slides pceIndex: " << pceIndex << " pce: " << pce
-              << std::endl;
 
     for (int pceNum = 0; pceNum < pos.pceNum[pce]; ++pceNum) {
       int sq = pos.pList[pce][pceNum];
       assert(SqOnBoard(sq));
-      std::cout << "Piece: " << PceChar[pce] << " on " << PrSq(sq) << '\n';
 
       for (int i = 0; i < NumDir[pce]; ++i) {
         int dir = PceDir[pce][i];

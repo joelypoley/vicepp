@@ -15,8 +15,8 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 
-add_executable(vice vice.cc init.cc bitboards.cc board.cc hashkeys.cc data.cc attack.cc movegen.cc io.cc validate.cc)
-add_executable(vice_test vice_test.cc init.cc bitboards.cc board.cc hashkeys.cc data.cc attack.cc movegen.cc io.cc validate.cc)
+add_executable(vice vice.cc init.cc bitboards.cc board.cc hashkeys.cc data.cc attack.cc movegen.cc io.cc validate.cc makemove.cc perft.cc)
+add_executable(vice_test vice_test.cc init.cc bitboards.cc board.cc hashkeys.cc data.cc attack.cc movegen.cc io.cc validate.cc makemove.cc perft.cc)
 
 target_link_libraries(vice ${CONAN_LIBS})
 target_link_libraries(vice_test ${CONAN_LIBS})

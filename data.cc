@@ -11,6 +11,9 @@ std::array<int, 13> PieceVal = {0,   100, 325, 325, 550,  1000, 50000,
 std::array<int, 13> PieceCol = {BOTH,  WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
                                 BLACK, BLACK, BLACK, BLACK, BLACK, BLACK};
 
+std::array<int, 13> PiecePawn = {false, true,  false, false, false,
+                                 false, false, true,  false, false,
+                                 false, false, false};
 std::array<int, 13> PieceKnight = {false, false, true,  false, false,
                                    false, false, false, true,  false,
                                    false, false, false};

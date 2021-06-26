@@ -188,8 +188,10 @@ struct S_BOARD {
 
   std::array<S_UNDO, MAXGAMEMOVES> history;
 
-  // Gives the list of the square the nth piece of that piecetype is on. For
-  // example, pList[wP][3] is the square of the 4th white pawn.
+  // Gives the list of the squares that a piecetype is on. For
+  // example, pList[wP] is an array of squares the white pawns are on.
+  // pList[wP][3] is the square of the "4th" white pawn (although pList[wP] is
+  // in no particularly order, hence the scare quotes around "4th").
   std::array<std::array<int, 10>, 13> pList;
 };
 
@@ -216,6 +218,7 @@ extern std::array<int, 13> PieceCol;
 extern std::array<int, BRD_SQ_NUM> FilesBrd;
 extern std::array<int, BRD_SQ_NUM> RanksBrd;
 
+extern std::array<int, 13> PiecePawn;
 extern std::array<int, 13> PieceKnight;
 extern std::array<int, 13> PieceKing;
 extern std::array<int, 13> PieceRookQueen;
@@ -286,5 +289,12 @@ bool PieceValid(const int pce);
 
 // movegen.cc
 void GenerateAllMoves(const S_BOARD& pos, S_MOVELIST* list);
+
+// makemove.cc
+bool MakeMove(S_BOARD& pos, int move);
+void TakeMove(S_BOARD& pos);
+
+// perft.cc
+long PerftTest(int depth, S_BOARD& pos);
 
 #endif
